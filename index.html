@@ -15,8 +15,11 @@
 <body>
   <h2>Sudoku 9x9 (parzialmente riempito)</h2>
   <table id="sudoku"></table>
+  <div style="text-align: center; margin-top: 20px;">
+    <button onclick="verificaSudoku()">Verifica soluzione</button>
+    <div id="result" style="margin-top:10px; font-weight:bold;"></div>
+  </div>
   <script>
-    // Semplice funzione per "mescolare" un array
     function shuffle(a) {
       for (let i = a.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -24,8 +27,6 @@
       }
       return a;
     }
-
-    // Genera una soluzione finale (backtracking ricorsivo)
     function fill(grid, r=0, c=0) {
       if (r === 9) return true;
       let num = shuffle([1,2,3,4,5,6,7,8,9]);
@@ -42,7 +43,6 @@
       grid[r][c] = 0;
       return false;
     }
-
     function isValid(grid, r, c, n) {
       for (let i = 0; i < 9; i++) {
         if (grid[r][i] === n || grid[i][c] === n) return false;
@@ -53,9 +53,7 @@
           if (grid[rr+i][cc+j] === n) return false;
       return true;
     }
-
     function createPuzzle(fullGrid, holes=46) {
-      // Copy grid and rimuovi 'holes' numeri casuali
       let grid = fullGrid.map(row=>row.slice());
       let cells = [];
       for(let r=0;r<9;r++)for(let c=0;c<9;c++)cells.push([r,c]);
@@ -66,11 +64,10 @@
       }
       return grid;
     }
-
-    // -- Generazione e rendering --
+    // Generazione e rendering
     let full = Array.from({length:9},()=>Array(9).fill(0));
     fill(full);
-    let puzzle = createPuzzle(full, 46); // 81-35=46 buchi
+    let puzzle = createPuzzle(full, 46);
 
     // Rendering HTML
     const table = document.getElementById('sudoku');
@@ -91,6 +88,49 @@
         tr.appendChild(td);
       }
       table.appendChild(tr);
+    }
+
+    // Funzione verifica
+    function verificaSudoku() {
+      let grid = [];
+      for (let r = 0; r < 9; r++) {
+        let row = [];
+        for (let c = 0; c < 9; c++) {
+          let cell = table.rows[r].cells[c];
+          let val = cell.className === 'fixed' ? parseInt(cell.textContent,10) : parseInt(cell.firstChild.value,10);
+          row.push(val || 0); // zero se vuoto
+        }
+        grid.push(row);
+      }
+      // Check righe
+      for(let r=0;r<9;r++) {
+        let nums = grid[r].slice();
+        if(!validaSequenza(nums)) return mostraEsito(false);
+      }
+      // Check colonne
+      for(let c=0;c<9;c++) {
+        let nums = [];
+        for(let r=0;r<9;r++) nums.push(grid[r][c]);
+        if(!validaSequenza(nums)) return mostraEsito(false);
+      }
+      // Check box 3x3
+      for(let br=0;br<3;br++) for(let bc=0;bc<3;bc++) {
+        let nums = [];
+        for(let r=0;r<3;r++) for(let c=0;c<3;c++)
+          nums.push(grid[br*3+r][bc*3+c]);
+        if(!validaSequenza(nums)) return mostraEsito(false);
+      }
+      mostraEsito(true);
+    }
+    function validaSequenza(arr) {
+      let set = new Set(arr);
+      for(let i=1;i<=9;i++) if(!set.has(i)) return false;
+      return true;
+    }
+    function mostraEsito(valida) {
+      const msg = document.getElementById('result');
+      msg.textContent = valida ? "Soluzione CORRETTA!" : "Soluzione NON valida!";
+      msg.style.color = valida ? "green" : "red";
     }
   </script>
 </body>
