@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>Sudoku Generato</title>
+  <style>
+    table { border-collapse: collapse; margin: 20px auto; }
+    td { width: 40px; height: 40px; text-align: center; border: 1px solid #444; font-size: 18px; }
+    input[type='text'] { width: 38px; height: 38px; text-align: center; font-size: 18px; border: none; }
+    td:nth-child(3), td:nth-child(6) { border-right: 2px solid #222; }
+    tr:nth-child(3), tr:nth-child(6) td { border-bottom: 2px solid #222; }
+    .fixed { font-weight: bold; background: #eee; }
+  </style>
+</head>
+<body>
+  <h2>Sudoku 9x9 (parzialmente riempito)</h2>
+  <table id="sudoku"></table>
+  <script>
+    // Semplice funzione per "mescolare" un array
+    function shuffle(a) {
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    // Genera una soluzione finale (backtracking ricorsivo)
+    function fill(grid, r=0, c=0) {
+      if (r === 9) return true;
+      let num = shuffle([1,2,3,4,5,6,7,8,9]);
+      for (let n of num) {
+        if (isValid(grid, r, c, n)) {
+          grid[r][c] = n;
+          if (c === 8) {
+            if (fill(grid, r+1, 0)) return true;
+          } else {
+            if (fill(grid, r, c+1)) return true;
+          }
+        }
+      }
+      grid[r][c] = 0;
+      return false;
+    }
+
+    function isValid(grid, r, c, n) {
+      for (let i = 0; i < 9; i++) {
+        if (grid[r][i] === n || grid[i][c] === n) return false;
+      }
+      let rr = Math.floor(r/3)*3, cc = Math.floor(c/3)*3;
+      for (let i = 0; i < 3; i++)
+        for (let j = 0; j < 3; j++)
+          if (grid[rr+i][cc+j] === n) return false;
+      return true;
+    }
+
+    function createPuzzle(fullGrid, holes=46) {
+      // Copy grid and rimuovi 'holes' numeri casuali
+      let grid = fullGrid.map(row=>row.slice());
+      let cells = [];
+      for(let r=0;r<9;r++)for(let c=0;c<9;c++)cells.push([r,c]);
+      shuffle(cells);
+      for(let i=0;i<holes;i++) {
+        let [r,c]=cells[i];
+        grid[r][c]=0;
+      }
+      return grid;
+    }
+
+    // -- Generazione e rendering --
+    let full = Array.from({length:9},()=>Array(9).fill(0));
+    fill(full);
+    let puzzle = createPuzzle(full, 46); // 81-35=46 buchi
+
+    // Rendering HTML
+    const table = document.getElementById('sudoku');
+    for (let r = 0; r < 9; r++) {
+      const tr = document.createElement('tr');
+      for (let c = 0; c < 9; c++) {
+        const td = document.createElement('td');
+        if (puzzle[r][c]) {
+          td.textContent = puzzle[r][c];
+          td.className = 'fixed';
+        } else {
+          const input = document.createElement('input');
+          input.type = 'text';
+          input.maxLength = 1;
+          input.pattern = '[1-9]';
+          td.appendChild(input);
+        }
+        tr.appendChild(td);
+      }
+      table.appendChild(tr);
+    }
+  </script>
+</body>
+</html>
