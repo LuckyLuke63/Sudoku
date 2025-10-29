@@ -7,6 +7,8 @@
     table { border-collapse: collapse; margin: 20px auto; }
     td { width: 40px; height: 40px; text-align: center; border: 1px solid #444; font-size: 18px; }
     input[type='text'] { width: 38px; height: 38px; text-align: center; font-size: 18px; border: none; }
+    .correct { color: green; font-weight: bold; }
+    .incorrect { color: red; font-weight: bold; }
     td:nth-child(3), td:nth-child(6) { border-right: 2px solid #222; }
     tr:nth-child(3), tr:nth-child(6) td { border-bottom: 2px solid #222; }
     .fixed { font-weight: bold; background: #eee; }
@@ -17,6 +19,7 @@
   <table id="sudoku"></table>
   <div style="text-align: center; margin-top: 20px;">
     <button onclick="verificaSudoku()">Verifica soluzione</button>
+    <button onclick="verificaParziale()">Verifica soluzione (parziale)</button>
     <div id="result" style="margin-top:10px; font-weight:bold;"></div>
   </div>
   <script>
@@ -88,6 +91,30 @@
         tr.appendChild(td);
       }
       table.appendChild(tr);
+    }
+
+    // Funzione verifica parziale
+    function verificaParziale() {
+      for (let r = 0; r < 9; r++) {
+        for (let c = 0; c < 9; c++) {
+          let cell = table.rows[r].cells[c];
+          if (cell.className !== 'fixed') {
+            let input = cell.firstChild;
+            let val = parseInt(input.value, 10);
+            if (val) {
+              if (val === full[r][c]) {
+                input.className = 'correct';
+              } else {
+                input.className = 'incorrect';
+              }
+            } else {
+              input.className = '';
+            }
+          }
+        }
+      }
+      document.getElementById('result').textContent = "Verifica parziale completata";
+      document.getElementById('result').style.color = "blue";
     }
 
     // Funzione verifica
